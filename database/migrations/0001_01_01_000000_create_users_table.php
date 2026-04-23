@@ -21,6 +21,10 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['role', 'is_active']);
+        });
+
+        // Self-referencing FK must be added after table creation (PostgreSQL requirement)
+        Schema::table('users', function (Blueprint $table) {
             $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
         });
 
