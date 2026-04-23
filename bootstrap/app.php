@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Middleware\CenterAccessMiddleware;
 use App\Http\Middleware\ForcePasswordChangeMiddleware;
+use App\Http\Middleware\NoCacheMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,6 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'role'           => RoleMiddleware::class,
             'center.access'  => CenterAccessMiddleware::class,
             'force.password' => ForcePasswordChangeMiddleware::class,
+        ]);
+
+        $middleware->web(append: [
+            NoCacheMiddleware::class,
         ]);
 
         $middleware->statefulApi();
