@@ -119,8 +119,8 @@ class DatabaseSeeder extends Seeder
                     'route_id'    => $route->id,
                     'client_code' => 'CLI-' . str_pad($clientIndex + 1, 4, '0', STR_PAD_LEFT),
                     'name'        => $name,
-                    'address'     => fake()->address(),
-                    'phone'       => fake()->phoneNumber(),
+                    'address'     => 'Calle ' . ($clientIndex + 1) . ' #' . rand(1, 99) . '-' . rand(1, 99),
+                    'phone'       => '3' . str_pad((string) rand(0, 999999999), 9, '0', STR_PAD_LEFT),
                     'created_by'  => $tiAdmin->id,
                 ]);
                 $clientIndex++;
