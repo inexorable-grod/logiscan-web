@@ -18,6 +18,8 @@ class DashboardController extends Controller
         $stats = [];
         $scanStats = [];
         $scansPerOperator = collect();
+        $scansByType = [];
+        $scansTrend = [];
 
         if (in_array($user->role, ['ti_admin', 'gerente_ops'])) {
             $stats = [
@@ -41,6 +43,21 @@ class DashboardController extends Controller
                 ->limit(10)
                 ->with('user:id,name')
                 ->get();
+
+            $scansByType = Scan::whereDate('scanned_at', today())
+                ->selectRaw('scan_type, count(*) as total')
+                ->groupBy('scan_type')
+                ->pluck('total', 'scan_type')
+                ->toArray();
+
+            $scansTrend = collect(range(6, 0))->map(function ($daysAgo) {
+                $date = now()->subDays($daysAgo);
+                return [
+                    'date'  => $date->toDateString(),
+                    'label' => $date->locale('es')->shortDayName,
+                    'count' => Scan::whereDate('scanned_at', $date->toDateString())->count(),
+                ];
+            })->values()->toArray();
 
         } elseif ($user->role === 'supervisor') {
             $centerId = session('active_center_id');
@@ -66,9 +83,25 @@ class DashboardController extends Controller
                     ->limit(10)
                     ->with('user:id,name')
                     ->get();
+
+                $scansByType = Scan::whereIn('route_id', $routeIds)
+                    ->whereDate('scanned_at', today())
+                    ->selectRaw('scan_type, count(*) as total')
+                    ->groupBy('scan_type')
+                    ->pluck('total', 'scan_type')
+                    ->toArray();
+
+                $scansTrend = collect(range(6, 0))->map(function ($daysAgo) use ($routeIds) {
+                    $date = now()->subDays($daysAgo);
+                    return [
+                        'date'  => $date->toDateString(),
+                        'label' => $date->locale('es')->shortDayName,
+                        'count' => Scan::whereIn('route_id', $routeIds)->whereDate('scanned_at', $date->toDateString())->count(),
+                    ];
+                })->values()->toArray();
             }
         }
 
-        return view('dashboard', compact('stats', 'scanStats', 'scansPerOperator'));
+        return view('dashboard', compact('stats', 'scanStats', 'scansPerOperator', 'scansByType', 'scansTrend'));
     }
 }

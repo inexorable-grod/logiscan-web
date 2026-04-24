@@ -58,22 +58,40 @@ class ScanController extends Controller
         foreach ($request->scans as $scan) {
             $validation = $this->scanValidator->validate($scan['barcode']);
 
-            if ($validation['valid']) {
-                Scan::create([
-                    'user_id'    => $userId,
-                    'route_id'   => $scan['routeId'] ?? null,
-                    'client_id'  => $scan['clientId'] ?? null,
-                    'barcode'    => $scan['barcode'],
-                    'scan_type'  => $scan['scanType'],
-                    'local_id'   => $scan['localId'],
-                    'scanned_at' => Carbon::parse($scan['scannedAt']),
-                ]);
+            if (!$validation['valid']) {
+                $results[] = [
+                    'localId' => $scan['localId'],
+                    'status'  => 'failed',
+                    'error'   => $validation['error'],
+                ];
+                continue;
             }
+
+            // Duplicate check: same barcode on the same route
+            $routeId = $scan['routeId'] ?? null;
+            if ($routeId && Scan::where('barcode', $scan['barcode'])->where('route_id', $routeId)->exists()) {
+                $results[] = [
+                    'localId' => $scan['localId'],
+                    'status'  => 'duplicate',
+                    'error'   => 'Este codigo ya fue escaneado en esta ruta.',
+                ];
+                continue;
+            }
+
+            Scan::create([
+                'user_id'    => $userId,
+                'route_id'   => $routeId,
+                'client_id'  => $scan['clientId'] ?? null,
+                'barcode'    => $scan['barcode'],
+                'scan_type'  => $scan['scanType'],
+                'local_id'   => $scan['localId'],
+                'scanned_at' => Carbon::parse($scan['scannedAt']),
+            ]);
 
             $results[] = [
                 'localId' => $scan['localId'],
-                'status'  => $validation['valid'] ? 'synced' : 'failed',
-                'error'   => $validation['error'],
+                'status'  => 'synced',
+                'error'   => null,
             ];
         }
 
