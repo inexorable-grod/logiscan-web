@@ -67,13 +67,13 @@ class ScanController extends Controller
                 continue;
             }
 
-            // Duplicate check: same barcode on the same route
+            // Duplicate check: barcode already scanned globally
             $routeId = $scan['routeId'] ?? null;
-            if ($routeId && Scan::where('barcode', $scan['barcode'])->where('route_id', $routeId)->exists()) {
+            if (Scan::where('barcode', $scan['barcode'])->exists()) {
                 $results[] = [
                     'localId' => $scan['localId'],
                     'status'  => 'duplicate',
-                    'error'   => 'Este codigo ya fue escaneado en esta ruta.',
+                    'error'   => 'Este codigo ya fue escaneado.',
                 ];
                 continue;
             }

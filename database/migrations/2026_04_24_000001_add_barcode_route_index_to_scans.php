@@ -9,14 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('scans', function (Blueprint $table) {
-            $table->index(['barcode', 'route_id'], 'scans_barcode_route_idx');
+            $table->index('barcode', 'scans_barcode_idx');
         });
     }
 
     public function down(): void
     {
         Schema::table('scans', function (Blueprint $table) {
-            $table->dropIndex('scans_barcode_route_idx');
+            $table->dropIndex('scans_barcode_idx');
         });
     }
 };
