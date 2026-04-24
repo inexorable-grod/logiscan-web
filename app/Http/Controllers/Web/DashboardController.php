@@ -16,7 +16,7 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         $stats = [];
-        $scanStats = [];
+        $scansPerCenter = collect();
         $scansByType = [];
         $scansTrendByOperator = [];
         $clientsPerRoute = [];
@@ -31,11 +31,8 @@ class DashboardController extends Controller
                 'pending_requests' => ClientRequest::where('status', 'pending')->count(),
             ];
 
-            $scanStats = [
-                'today' => Scan::whereDate('scanned_at', today())->count(),
-                'week'  => Scan::where('scanned_at', '>=', now()->startOfWeek())->count(),
-                'total' => Scan::count(),
-            ];
+            // Scans per center (today, week, total)
+            $scansPerCenter = $this->buildScansPerCenter();
 
             $scansByType = Scan::whereDate('scanned_at', today())
                 ->selectRaw('scan_type, count(*) as total')
@@ -68,11 +65,8 @@ class DashboardController extends Controller
                     'pending_requests' => ClientRequest::where('center_id', $centerId)->where('status', 'pending')->count(),
                 ];
 
-                $scanStats = [
-                    'today' => Scan::whereIn('route_id', $routeIds)->whereDate('scanned_at', today())->count(),
-                    'week'  => Scan::whereIn('route_id', $routeIds)->where('scanned_at', '>=', now()->startOfWeek())->count(),
-                    'total' => Scan::whereIn('route_id', $routeIds)->count(),
-                ];
+                // Single center for supervisor
+                $scansPerCenter = $this->buildScansPerCenter($centerId);
 
                 $scansByType = Scan::whereIn('route_id', $routeIds)
                     ->whereDate('scanned_at', today())
@@ -101,14 +95,35 @@ class DashboardController extends Controller
         }
 
         return view('dashboard', compact(
-            'stats', 'scanStats', 'scansByType',
+            'stats', 'scansPerCenter', 'scansByType',
             'scansTrendByOperator', 'clientsPerRoute', 'requestsByStatus'
         ));
     }
 
     /**
+     * Build scans per distribution center (today, week, total).
+     */
+    private function buildScansPerCenter(?string $centerId = null): \Illuminate\Support\Collection
+    {
+        $query = OperationCenter::where('is_active', true);
+        if ($centerId) {
+            $query->where('id', $centerId);
+        }
+        $centers = $query->select('id', 'name')->get();
+
+        return $centers->map(function ($center) {
+            $routeIds = Route::where('center_id', $center->id)->pluck('id');
+            return (object) [
+                'name'  => $center->name,
+                'today' => Scan::whereIn('route_id', $routeIds)->whereDate('scanned_at', today())->count(),
+                'week'  => Scan::whereIn('route_id', $routeIds)->where('scanned_at', '>=', now()->startOfWeek())->count(),
+                'total' => Scan::whereIn('route_id', $routeIds)->count(),
+            ];
+        });
+    }
+
+    /**
      * Build the 7-day trend data grouped by operator.
-     * Returns: [ { date, label, operators: { 'Name': count, ... } }, ... ]
      */
     private function buildTrendByOperator($routeIds = null): array
     {
@@ -125,10 +140,8 @@ class DashboardController extends Controller
 
         $raw = $query->get();
 
-        // Collect unique operator names
         $operators = $raw->pluck('user.name')->unique()->filter()->values()->toArray();
 
-        // Build per-day structure
         $trend = $dates->map(function ($date) use ($raw) {
             $dayData = $raw->where('scan_date', $date);
             $ops = [];

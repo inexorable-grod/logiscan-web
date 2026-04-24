@@ -64,26 +64,54 @@
                     <p class="text-xs text-gray-500">Clientes</p>
                 </div>
             </div>
+            @if(isset($stats['pending_requests']))
+            <div class="bg-white rounded-lg shadow p-4 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-lg bg-red-100 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15a2.25 2.25 0 0 1 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-gray-800">{{ $stats['pending_requests'] }}</p>
+                    <p class="text-xs text-gray-500">Solicitudes Pend.</p>
+                </div>
+            </div>
+            @endif
         </div>
 
-        {{-- Row 2: Scan summary + Pending requests --}}
-        @if(!empty($scanStats))
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div class="bg-indigo-600 rounded-lg shadow p-4 text-white">
-                <p class="text-3xl font-bold">{{ $scanStats['today'] }}</p>
-                <p class="text-xs text-indigo-200 mt-1">Escaneos Hoy</p>
+        {{-- Row 2: Scans per Distribution Center --}}
+        @if($scansPerCenter->isNotEmpty())
+        <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Escaneos por Centro de Distribucion</h3>
             </div>
-            <div class="bg-indigo-500 rounded-lg shadow p-4 text-white">
-                <p class="text-3xl font-bold">{{ $scanStats['week'] }}</p>
-                <p class="text-xs text-indigo-200 mt-1">Esta Semana</p>
-            </div>
-            <div class="bg-indigo-400 rounded-lg shadow p-4 text-white">
-                <p class="text-3xl font-bold">{{ $scanStats['total'] }}</p>
-                <p class="text-xs text-indigo-200 mt-1">Total Escaneos</p>
-            </div>
-            <div class="bg-red-500 rounded-lg shadow p-4 text-white">
-                <p class="text-3xl font-bold">{{ $stats['pending_requests'] ?? 0 }}</p>
-                <p class="text-xs text-red-200 mt-1">Solicitudes Pendientes</p>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Centro</th>
+                            <th class="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Hoy</th>
+                            <th class="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Esta Semana</th>
+                            <th class="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @foreach($scansPerCenter as $center)
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-3 font-medium text-gray-800">{{ $center->name }}</td>
+                            <td class="px-6 py-3 text-right">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">{{ $center->today }}</span>
+                            </td>
+                            <td class="px-6 py-3 text-right">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">{{ $center->week }}</span>
+                            </td>
+                            <td class="px-6 py-3 text-right">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">{{ $center->total }}</span>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
         @endif
