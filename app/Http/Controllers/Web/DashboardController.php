@@ -17,16 +17,17 @@ class DashboardController extends Controller
         $user = auth()->user();
         $stats = [];
         $scanStats = [];
-        $scansPerOperator = collect();
         $scansByType = [];
-        $scansTrend = [];
+        $scansTrendByOperator = [];
+        $clientsPerRoute = [];
+        $requestsByStatus = [];
 
         if (in_array($user->role, ['ti_admin', 'gerente_ops'])) {
             $stats = [
-                'users' => User::where('is_active', true)->count(),
-                'centers' => OperationCenter::where('is_active', true)->count(),
-                'routes' => Route::where('is_active', true)->count(),
-                'clients' => Client::where('is_active', true)->count(),
+                'users'            => User::where('is_active', true)->count(),
+                'centers'          => OperationCenter::where('is_active', true)->count(),
+                'routes'           => Route::where('is_active', true)->count(),
+                'clients'          => Client::where('is_active', true)->count(),
                 'pending_requests' => ClientRequest::where('status', 'pending')->count(),
             ];
 
@@ -36,36 +37,34 @@ class DashboardController extends Controller
                 'total' => Scan::count(),
             ];
 
-            $scansPerOperator = Scan::select('user_id', DB::raw('count(*) as total'))
-                ->whereDate('scanned_at', today())
-                ->groupBy('user_id')
-                ->orderByDesc('total')
-                ->limit(10)
-                ->with('user:id,name')
-                ->get();
-
             $scansByType = Scan::whereDate('scanned_at', today())
                 ->selectRaw('scan_type, count(*) as total')
                 ->groupBy('scan_type')
                 ->pluck('total', 'scan_type')
                 ->toArray();
 
-            $scansTrend = collect(range(6, 0))->map(function ($daysAgo) {
-                $date = now()->subDays($daysAgo);
-                return [
-                    'date'  => $date->toDateString(),
-                    'label' => $date->locale('es')->shortDayName,
-                    'count' => Scan::whereDate('scanned_at', $date->toDateString())->count(),
-                ];
-            })->values()->toArray();
+            $scansTrendByOperator = $this->buildTrendByOperator();
+
+            $clientsPerRoute = Client::select('route_id', DB::raw('count(*) as total'))
+                ->where('is_active', true)
+                ->groupBy('route_id')
+                ->with('route:id,route_number')
+                ->orderByDesc('total')
+                ->limit(10)
+                ->get();
+
+            $requestsByStatus = ClientRequest::selectRaw('status, count(*) as total')
+                ->groupBy('status')
+                ->pluck('total', 'status')
+                ->toArray();
 
         } elseif ($user->role === 'supervisor') {
             $centerId = session('active_center_id');
             if ($centerId) {
                 $routeIds = Route::where('center_id', $centerId)->pluck('id');
                 $stats = [
-                    'routes' => Route::where('center_id', $centerId)->where('is_active', true)->count(),
-                    'clients' => Client::whereIn('route_id', $routeIds)->where('is_active', true)->count(),
+                    'routes'           => Route::where('center_id', $centerId)->where('is_active', true)->count(),
+                    'clients'          => Client::whereIn('route_id', $routeIds)->where('is_active', true)->count(),
                     'pending_requests' => ClientRequest::where('center_id', $centerId)->where('status', 'pending')->count(),
                 ];
 
@@ -75,15 +74,6 @@ class DashboardController extends Controller
                     'total' => Scan::whereIn('route_id', $routeIds)->count(),
                 ];
 
-                $scansPerOperator = Scan::select('user_id', DB::raw('count(*) as total'))
-                    ->whereIn('route_id', $routeIds)
-                    ->whereDate('scanned_at', today())
-                    ->groupBy('user_id')
-                    ->orderByDesc('total')
-                    ->limit(10)
-                    ->with('user:id,name')
-                    ->get();
-
                 $scansByType = Scan::whereIn('route_id', $routeIds)
                     ->whereDate('scanned_at', today())
                     ->selectRaw('scan_type, count(*) as total')
@@ -91,17 +81,73 @@ class DashboardController extends Controller
                     ->pluck('total', 'scan_type')
                     ->toArray();
 
-                $scansTrend = collect(range(6, 0))->map(function ($daysAgo) use ($routeIds) {
-                    $date = now()->subDays($daysAgo);
-                    return [
-                        'date'  => $date->toDateString(),
-                        'label' => $date->locale('es')->shortDayName,
-                        'count' => Scan::whereIn('route_id', $routeIds)->whereDate('scanned_at', $date->toDateString())->count(),
-                    ];
-                })->values()->toArray();
+                $scansTrendByOperator = $this->buildTrendByOperator($routeIds);
+
+                $clientsPerRoute = Client::select('route_id', DB::raw('count(*) as total'))
+                    ->whereIn('route_id', $routeIds)
+                    ->where('is_active', true)
+                    ->groupBy('route_id')
+                    ->with('route:id,route_number')
+                    ->orderByDesc('total')
+                    ->limit(10)
+                    ->get();
+
+                $requestsByStatus = ClientRequest::where('center_id', $centerId)
+                    ->selectRaw('status, count(*) as total')
+                    ->groupBy('status')
+                    ->pluck('total', 'status')
+                    ->toArray();
             }
         }
 
-        return view('dashboard', compact('stats', 'scanStats', 'scansPerOperator', 'scansByType', 'scansTrend'));
+        return view('dashboard', compact(
+            'stats', 'scanStats', 'scansByType',
+            'scansTrendByOperator', 'clientsPerRoute', 'requestsByStatus'
+        ));
+    }
+
+    /**
+     * Build the 7-day trend data grouped by operator.
+     * Returns: [ { date, label, operators: { 'Name': count, ... } }, ... ]
+     */
+    private function buildTrendByOperator($routeIds = null): array
+    {
+        $dates = collect(range(6, 0))->map(fn($d) => now()->subDays($d)->toDateString());
+
+        $query = Scan::select('user_id', DB::raw('DATE(scanned_at) as scan_date'), DB::raw('count(*) as total'))
+            ->whereDate('scanned_at', '>=', $dates->first())
+            ->groupBy('user_id', 'scan_date')
+            ->with('user:id,name');
+
+        if ($routeIds) {
+            $query->whereIn('route_id', $routeIds);
+        }
+
+        $raw = $query->get();
+
+        // Collect unique operator names
+        $operators = $raw->pluck('user.name')->unique()->filter()->values()->toArray();
+
+        // Build per-day structure
+        $trend = $dates->map(function ($date) use ($raw) {
+            $dayData = $raw->where('scan_date', $date);
+            $ops = [];
+            foreach ($dayData as $row) {
+                $name = $row->user->name ?? 'Desconocido';
+                $ops[$name] = $row->total;
+            }
+            $d = \Carbon\Carbon::parse($date);
+            return [
+                'date'      => $date,
+                'label'     => $d->locale('es')->shortDayName,
+                'dayNum'    => $d->day,
+                'operators' => $ops,
+            ];
+        })->values()->toArray();
+
+        return [
+            'operators' => $operators,
+            'days'      => $trend,
+        ];
     }
 }
