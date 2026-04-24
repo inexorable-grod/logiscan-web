@@ -54,8 +54,8 @@
             <tbody class="divide-y divide-gray-200">
                 @forelse($requests as $request)
                 <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 text-sm text-gray-800">{{ $request->type }}</td>
-                    <td class="px-6 py-4 text-sm text-gray-600">{{ $request->user->name ?? '—' }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-800">{{ $request->request_type }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">{{ $request->requestedBy->name ?? '—' }}</td>
                     <td class="px-6 py-4 text-sm text-gray-600">{{ $request->center->name ?? '—' }}</td>
                     <td class="px-6 py-4 text-sm">
                         @switch($request->status)

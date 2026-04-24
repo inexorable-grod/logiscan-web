@@ -17,18 +17,19 @@ class RequestController extends Controller
 
     public function index(Request $request)
     {
-        $query = ClientRequest::with(['client', 'center']);
+        $query = ClientRequest::with(['requestedBy', 'center']);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
         if ($request->filled('type')) {
-            $query->where('type', $request->type);
+            $query->where('request_type', $request->type);
         }
 
         $requests = $query->orderByDesc('created_at')->paginate(20);
-        return view('requests.index', compact('requests'));
+        $types = ClientRequest::distinct()->pluck('request_type')->filter()->values();
+        return view('requests.index', compact('requests', 'types'));
     }
 
     public function approve(Request $request, string $id)
