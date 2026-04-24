@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Services\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -33,6 +34,12 @@ class AuthController extends Controller
                 Auth::logout();
                 return back()->with('error', 'No tiene permisos para acceder al panel web.');
             }
+
+            // Invalidate all other sessions for this user (single session enforcement)
+            DB::table('sessions')
+                ->where('user_id', $user->id)
+                ->where('id', '!=', $request->session()->getId())
+                ->delete();
 
             AuditService::log('WEB_LOGIN', 'users', $user->id, null, $user->id);
 
