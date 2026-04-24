@@ -57,7 +57,7 @@
                         @endif
                     </td>
                     <td class="px-6 py-4 text-sm space-x-2">
-                        <button @click="editUser = { id: {{ $user->id }}, name: '{{ addslashes($user->name) }}', email: '{{ addslashes($user->email) }}', role: '{{ $user->role }}' }; showEdit = true"
+                        <button @click="editUser = { id: '{{ $user->id }}', name: '{{ addslashes($user->name) }}', email: '{{ addslashes($user->email) }}', role: '{{ $user->role }}' }; showEdit = true"
                                 class="text-blue-600 hover:text-blue-800 font-medium">
                             Editar
                         </button>

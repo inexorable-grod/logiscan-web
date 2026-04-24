@@ -52,7 +52,7 @@
                     <td class="px-6 py-4 text-sm text-gray-600">{{ $client->address }}</td>
                     <td class="px-6 py-4 text-sm text-gray-600">{{ $client->phone }}</td>
                     <td class="px-6 py-4 text-sm">
-                        <button @click="editClient = { id: {{ $client->id }}, route_id: {{ $client->route_id ?? 'null' }}, client_code: '{{ addslashes($client->client_code) }}', name: '{{ addslashes($client->name) }}', address: '{{ addslashes($client->address) }}', phone: '{{ addslashes($client->phone) }}' }; showEdit = true"
+                        <button @click="editClient = { id: '{{ $client->id }}', route_id: '{{ $client->route_id }}', client_code: '{{ addslashes($client->client_code) }}', name: '{{ addslashes($client->name) }}', address: '{{ addslashes($client->address) }}', phone: '{{ addslashes($client->phone) }}' }; showEdit = true"
                                 class="text-blue-600 hover:text-blue-800 font-medium">
                             Editar
                         </button>

@@ -42,7 +42,7 @@
                         @endif
                     </td>
                     <td class="px-6 py-4 text-sm space-x-2">
-                        <button @click="editCenter = { id: {{ $center->id }}, name: '{{ addslashes($center->name) }}', code: '{{ addslashes($center->code) }}', address: '{{ addslashes($center->address) }}' }; showEdit = true"
+                        <button @click="editCenter = { id: '{{ $center->id }}', name: '{{ addslashes($center->name) }}', code: '{{ addslashes($center->code) }}', address: '{{ addslashes($center->address) }}' }; showEdit = true"
                                 class="text-blue-600 hover:text-blue-800 font-medium">
                             Editar
                         </button>

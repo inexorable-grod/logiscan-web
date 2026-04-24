@@ -40,7 +40,7 @@
                         @endif
                     </td>
                     <td class="px-6 py-4 text-sm space-x-2">
-                        <button @click="editRoute = { id: {{ $route->id }}, center_id: {{ $route->center_id }}, route_number: '{{ addslashes($route->route_number) }}', description: '{{ addslashes($route->description) }}' }; showEdit = true"
+                        <button @click="editRoute = { id: '{{ $route->id }}', center_id: '{{ $route->center_id }}', route_number: '{{ addslashes($route->route_number) }}', description: '{{ addslashes($route->description) }}' }; showEdit = true"
                                 class="text-blue-600 hover:text-blue-800 font-medium">
                             Editar
                         </button>
