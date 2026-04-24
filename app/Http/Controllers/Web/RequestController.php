@@ -34,18 +34,26 @@ class RequestController extends Controller
 
     public function approve(Request $request, string $id)
     {
-        $clientRequest = ClientRequest::findOrFail($id);
+        ClientRequest::findOrFail($id);
 
-        $this->resolutionService->resolve($clientRequest, 'approved', auth()->user(), $request->input('notes'));
+        $result = $this->resolutionService->resolve($id, auth()->id(), 'approved', $request->input('notes'));
+
+        if (!$result['success']) {
+            return redirect()->back()->with('error', $result['message']);
+        }
 
         return redirect()->back()->with('success', 'Solicitud aprobada correctamente.');
     }
 
     public function reject(Request $request, string $id)
     {
-        $clientRequest = ClientRequest::findOrFail($id);
+        ClientRequest::findOrFail($id);
 
-        $this->resolutionService->resolve($clientRequest, 'rejected', auth()->user(), $request->input('notes'));
+        $result = $this->resolutionService->resolve($id, auth()->id(), 'rejected', $request->input('notes'));
+
+        if (!$result['success']) {
+            return redirect()->back()->with('error', $result['message']);
+        }
 
         return redirect()->back()->with('success', 'Solicitud rechazada correctamente.');
     }
