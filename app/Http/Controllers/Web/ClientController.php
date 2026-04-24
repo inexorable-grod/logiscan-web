@@ -73,4 +73,13 @@ class ClientController extends Controller
 
         return redirect()->back()->with('success', 'Cliente actualizado correctamente.');
     }
+
+    public function destroy(string $id)
+    {
+        $client = Client::findOrFail($id);
+        $client->delete();
+        AuditService::log('CLIENT_DELETED', 'clients', $id, null, auth()->id());
+
+        return redirect()->back()->with('success', 'Cliente eliminado correctamente.');
+    }
 }

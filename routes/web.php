@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/routes', [RouteController::class, 'index'])->name('admin.routes');
         Route::post('/routes', [RouteController::class, 'store']);
         Route::put('/routes/{id}', [RouteController::class, 'update']);
+        Route::delete('/routes/{id}', [RouteController::class, 'destroy']);
     });
 
     // Shared (ti_admin + supervisor)
@@ -44,6 +45,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/clients', [ClientController::class, 'index'])->name('clients');
         Route::post('/clients', [ClientController::class, 'store']);
         Route::put('/clients/{id}', [ClientController::class, 'update']);
+        Route::delete('/clients/{id}', [ClientController::class, 'destroy']);
 
         Route::get('/requests', [RequestController::class, 'index'])->name('requests');
         Route::post('/requests/{id}/approve', [RequestController::class, 'approve']);

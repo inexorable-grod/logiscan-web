@@ -57,4 +57,18 @@ class RouteController extends Controller
 
         return redirect()->back()->with('success', 'Ruta actualizada correctamente.');
     }
+
+    public function destroy(string $id)
+    {
+        $route = Route::findOrFail($id);
+
+        if ($route->clients()->exists()) {
+            return redirect()->back()->with('error', 'No se puede eliminar la ruta porque tiene clientes asignados.');
+        }
+
+        $route->delete();
+        AuditService::log('ROUTE_DELETED', 'routes', $id, null, auth()->id());
+
+        return redirect()->back()->with('success', 'Ruta eliminada correctamente.');
+    }
 }
