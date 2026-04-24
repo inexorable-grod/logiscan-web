@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\OperationCenter;
 use App\Models\Route;
 use App\Services\AuditService;
 use Illuminate\Http\Request;
@@ -11,7 +12,8 @@ class RouteController extends Controller
     public function index()
     {
         $routes = Route::with('center')->orderBy('route_number')->paginate(20);
-        return view('admin.routes.index', compact('routes'));
+        $centers = OperationCenter::where('is_active', true)->orderBy('name')->get();
+        return view('admin.routes.index', compact('routes', 'centers'));
     }
 
     public function store(Request $request)

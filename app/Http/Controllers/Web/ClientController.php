@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Client;
+use App\Models\Route;
 use App\Services\AuditService;
 use Illuminate\Http\Request;
 
@@ -17,7 +18,9 @@ class ClientController extends Controller
         }
 
         $clients = $query->orderBy('name')->paginate(20);
-        return view('clients.index', compact('clients'));
+        $routes = Route::where('is_active', true)->orderBy('route_number')->get();
+
+        return view('clients.index', compact('clients', 'routes'));
     }
 
     public function store(Request $request)
@@ -25,20 +28,19 @@ class ClientController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'route_id' => 'required|exists:routes,id',
-            'code' => 'nullable|string|max:50',
+            'client_code' => 'nullable|string|max:50',
             'address' => 'nullable|string|max:500',
             'phone' => 'nullable|string|max:50',
-            'contact_name' => 'nullable|string|max:255',
         ]);
 
         $client = Client::create([
             'name' => $request->name,
             'route_id' => $request->route_id,
-            'code' => $request->code,
+            'client_code' => $request->client_code,
             'address' => $request->address,
             'phone' => $request->phone,
-            'contact_name' => $request->contact_name,
             'is_active' => true,
+            'created_by' => auth()->id(),
         ]);
 
         AuditService::log('CLIENT_CREATED', 'clients', $client->id, null, auth()->id());
@@ -51,22 +53,20 @@ class ClientController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'route_id' => 'required|exists:routes,id',
-            'code' => 'nullable|string|max:50',
+            'client_code' => 'nullable|string|max:50',
             'address' => 'nullable|string|max:500',
             'phone' => 'nullable|string|max:50',
-            'contact_name' => 'nullable|string|max:255',
         ]);
 
         $client = Client::findOrFail($id);
-        $oldValues = $client->only(['name', 'route_id', 'code', 'address', 'phone', 'contact_name']);
+        $oldValues = $client->only(['name', 'route_id', 'client_code', 'address', 'phone']);
 
         $client->update([
             'name' => $request->name,
             'route_id' => $request->route_id,
-            'code' => $request->code,
+            'client_code' => $request->client_code,
             'address' => $request->address,
             'phone' => $request->phone,
-            'contact_name' => $request->contact_name,
         ]);
 
         AuditService::log('CLIENT_UPDATED', 'clients', $client->id, $oldValues, auth()->id());
