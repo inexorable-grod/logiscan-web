@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Scan;
 use App\Services\AuditService;
 use App\Services\ScanValidationService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -36,6 +38,7 @@ class ScanController extends Controller
 
     /**
      * Process a batch of offline scans (sync endpoint).
+     * Persists each valid scan to the database.
      */
     public function batch(Request $request): JsonResponse
     {
@@ -45,12 +48,27 @@ class ScanController extends Controller
             'scans.*.barcode'    => 'required|string',
             'scans.*.scanType'   => 'required|string',
             'scans.*.scannedAt'  => 'required|string',
+            'scans.*.routeId'    => 'nullable|string',
+            'scans.*.clientId'   => 'nullable|string',
         ]);
 
         $results = [];
+        $userId = auth()->id();
 
         foreach ($request->scans as $scan) {
             $validation = $this->scanValidator->validate($scan['barcode']);
+
+            if ($validation['valid']) {
+                Scan::create([
+                    'user_id'    => $userId,
+                    'route_id'   => $scan['routeId'] ?? null,
+                    'client_id'  => $scan['clientId'] ?? null,
+                    'barcode'    => $scan['barcode'],
+                    'scan_type'  => $scan['scanType'],
+                    'local_id'   => $scan['localId'],
+                    'scanned_at' => Carbon::parse($scan['scannedAt']),
+                ]);
+            }
 
             $results[] = [
                 'localId' => $scan['localId'],
@@ -60,5 +78,27 @@ class ScanController extends Controller
         }
 
         return response()->json(['results' => $results]);
+    }
+
+    /**
+     * Get scan history for the authenticated operator.
+     */
+    public function history(Request $request): JsonResponse
+    {
+        $query = Scan::where('user_id', auth()->id())
+            ->with('client:id,client_code,name');
+
+        if ($request->filled('route_id')) {
+            $query->where('route_id', $request->route_id);
+        }
+
+        if ($request->filled('date')) {
+            $date = Carbon::parse($request->date);
+            $query->whereDate('scanned_at', $date);
+        }
+
+        $scans = $query->orderByDesc('scanned_at')->paginate(50);
+
+        return response()->json($scans);
     }
 }

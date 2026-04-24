@@ -31,6 +31,7 @@ Route::middleware(['auth:sanctum', 'role:operario', 'center.access', 'force.pass
     Route::get('/clients', [ClientController::class, 'index']);
     Route::post('/scans', [ScanController::class, 'store']);
     Route::post('/scans/batch', [ScanController::class, 'batch']);
+    Route::get('/scans/history', [ScanController::class, 'history']);
     Route::post('/requests', [RequestController::class, 'store']);
     Route::get('/requests/mine', [RequestController::class, 'index']);
 });
