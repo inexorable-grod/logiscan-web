@@ -23,7 +23,7 @@
                         name="current_password"
                         required
                         placeholder="Ingrese su contrasena actual"
-                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 pr-10 text-sm text-gray-800 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
+                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 pr-12 text-sm text-gray-800 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
                         @keydown="capsLock = $event.getModifierState('CapsLock')"
                         @keyup="capsLock = $event.getModifierState('CapsLock')"
                     >
@@ -58,7 +58,7 @@
                         name="new_password"
                         required
                         placeholder="Ingrese la nueva contrasena"
-                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 pr-10 text-sm text-gray-800 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
+                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 pr-12 text-sm text-gray-800 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
                         @keydown="capsLock = $event.getModifierState('CapsLock')"
                         @keyup="capsLock = $event.getModifierState('CapsLock')"
                     >
@@ -93,7 +93,7 @@
                         name="new_password_confirmation"
                         required
                         placeholder="Confirme la nueva contrasena"
-                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 pr-10 text-sm text-gray-800 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
+                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 pr-12 text-sm text-gray-800 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
                         @keydown="capsLock = $event.getModifierState('CapsLock')"
                         @keyup="capsLock = $event.getModifierState('CapsLock')"
                     >
