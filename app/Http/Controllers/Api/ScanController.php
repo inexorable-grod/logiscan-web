@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Scan;
 use App\Services\AuditService;
+use App\Services\BarcodeParserService;
 use App\Services\ScanValidationService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -78,14 +79,18 @@ class ScanController extends Controller
                 continue;
             }
 
+            $parsed = BarcodeParserService::parse($scan['barcode'], $scan['scanType']);
+
             Scan::create([
-                'user_id'    => $userId,
-                'route_id'   => $routeId,
-                'client_id'  => $scan['clientId'] ?? null,
-                'barcode'    => $scan['barcode'],
-                'scan_type'  => $scan['scanType'],
-                'local_id'   => $scan['localId'],
-                'scanned_at' => Carbon::parse($scan['scannedAt']),
+                'user_id'        => $userId,
+                'route_id'       => $routeId,
+                'client_id'      => $scan['clientId'] ?? null,
+                'barcode'        => $scan['barcode'],
+                'pedido_number'  => $parsed['pedido_number'],
+                'package_number' => $parsed['package_number'],
+                'scan_type'      => $scan['scanType'],
+                'local_id'       => $scan['localId'],
+                'scanned_at'     => Carbon::parse($scan['scannedAt']),
             ]);
 
             $results[] = [

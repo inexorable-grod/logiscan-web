@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\RouteController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\ScanController;
+use App\Http\Controllers\Api\ScanSummaryController;
 use App\Http\Controllers\Api\RequestController;
 use App\Http\Controllers\Api\RouteClosureController;
 use App\Http\Controllers\Api\ClosureDocumentController;
@@ -37,6 +38,7 @@ Route::middleware(['auth:sanctum', 'role:operario', 'center.access', 'force.pass
     Route::post('/scans', [ScanController::class, 'store']);
     Route::post('/scans/batch', [ScanController::class, 'batch']);
     Route::get('/scans/history', [ScanController::class, 'history']);
+    Route::get('/scans/by-order', [ScanSummaryController::class, 'byOrder']);
     Route::post('/requests', [RequestController::class, 'store']);
     Route::get('/requests/mine', [RequestController::class, 'index']);
 

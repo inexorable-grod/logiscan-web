@@ -16,6 +16,8 @@ class Scan extends Model
         'client_id',
         'order_id',
         'barcode',
+        'pedido_number',
+        'package_number',
         'scan_type',
         'local_id',
         'scanned_at',
