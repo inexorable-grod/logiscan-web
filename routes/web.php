@@ -7,6 +7,8 @@ use App\Http\Controllers\Web\CenterController;
 use App\Http\Controllers\Web\RouteController;
 use App\Http\Controllers\Web\ClientController;
 use App\Http\Controllers\Web\RequestController;
+use App\Http\Controllers\Web\PedidoController;
+use App\Http\Controllers\Web\RouteClosureWebController;
 use Illuminate\Support\Facades\Route;
 
 // Guest routes
@@ -50,5 +52,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/requests', [RequestController::class, 'index'])->name('requests');
         Route::post('/requests/{id}/approve', [RequestController::class, 'approve']);
         Route::post('/requests/{id}/reject', [RequestController::class, 'reject']);
+
+        Route::get('/pedidos', [PedidoController::class, 'index'])->name('pedidos');
+        Route::get('/cierres', [RouteClosureWebController::class, 'index'])->name('cierres');
+        Route::get('/cierres/{id}', [RouteClosureWebController::class, 'show'])->name('cierres.show');
     });
 });

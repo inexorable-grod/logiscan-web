@@ -14,6 +14,7 @@ class Scan extends Model
         'user_id',
         'route_id',
         'client_id',
+        'order_id',
         'barcode',
         'scan_type',
         'local_id',
@@ -40,5 +41,10 @@ class Scan extends Model
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
     }
 }

@@ -262,6 +262,66 @@
             </div>
 
         </div>
+
+        {{-- Row 5: Recent Route Closures --}}
+        @if($recentClosures->count() > 0)
+        <div class="bg-white rounded-xl shadow p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Cierres de Ruta Recientes</h3>
+                    <p class="text-xs text-gray-400">Ultimos 7 dias</p>
+                </div>
+                <a href="{{ route('cierres') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Ver todos</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-xs font-semibold text-gray-500 uppercase">
+                            <th class="pb-3 pr-4">Ruta</th>
+                            <th class="pb-3 pr-4">Fecha</th>
+                            <th class="pb-3 pr-4">Estado</th>
+                            <th class="pb-3">Accion</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @foreach($recentClosures as $closure)
+                        <tr>
+                            <td class="py-2.5 pr-4 font-medium text-gray-800">{{ $closure->route->route_number ?? '-' }}</td>
+                            <td class="py-2.5 pr-4 text-gray-600">{{ $closure->operation_date->format('d/m/Y') }}</td>
+                            <td class="py-2.5 pr-4">
+                                @php
+                                    $statusColors = [
+                                        'pending_documents' => 'bg-gray-100 text-gray-700',
+                                        'pending_ocr' => 'bg-blue-100 text-blue-700',
+                                        'pending_review' => 'bg-amber-100 text-amber-700',
+                                        'pending_approval' => 'bg-indigo-100 text-indigo-700',
+                                        'approved' => 'bg-green-100 text-green-700',
+                                        'rejected' => 'bg-red-100 text-red-700',
+                                    ];
+                                    $statusLabels = [
+                                        'pending_documents' => 'Esperando docs',
+                                        'pending_ocr' => 'OCR',
+                                        'pending_review' => 'Revision',
+                                        'pending_approval' => 'Aprobacion',
+                                        'approved' => 'Aprobado',
+                                        'rejected' => 'Rechazado',
+                                    ];
+                                @endphp
+                                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$closure->status] ?? 'bg-gray-100 text-gray-700' }}">
+                                    {{ $statusLabels[$closure->status] ?? $closure->status }}
+                                </span>
+                            </td>
+                            <td class="py-2.5">
+                                <a href="{{ route('cierres.show', $closure->id) }}" class="text-blue-600 hover:text-blue-800 text-xs font-medium">Detalle</a>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        @endif
+
     @endif
 </div>
 

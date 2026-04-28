@@ -17,6 +17,7 @@ class Route extends Model
         'description',
         'is_active',
         'created_by',
+        'current_closure_id',
     ];
 
     protected function casts(): array
@@ -39,5 +40,15 @@ class Route extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function closures(): HasMany
+    {
+        return $this->hasMany(RouteClosure::class);
+    }
+
+    public function currentClosure(): BelongsTo
+    {
+        return $this->belongsTo(RouteClosure::class, 'current_closure_id');
     }
 }

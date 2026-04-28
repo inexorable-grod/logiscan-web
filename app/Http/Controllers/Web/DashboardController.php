@@ -7,6 +7,7 @@ use App\Models\OperationCenter;
 use App\Models\Route;
 use App\Models\Client;
 use App\Models\ClientRequest;
+use App\Models\RouteClosure;
 use App\Models\Scan;
 use Illuminate\Support\Facades\DB;
 
@@ -21,6 +22,7 @@ class DashboardController extends Controller
         $scansTrendByOperator = [];
         $clientsPerRoute = [];
         $requestsByStatus = [];
+        $recentClosures = collect();
 
         if (in_array($user->role, ['ti_admin', 'gerente_ops'])) {
             $stats = [
@@ -54,6 +56,12 @@ class DashboardController extends Controller
                 ->groupBy('status')
                 ->pluck('total', 'status')
                 ->toArray();
+
+            $recentClosures = RouteClosure::with(['route:id,route_number'])
+                ->where('operation_date', '>=', now()->subDays(7))
+                ->orderByDesc('operation_date')
+                ->limit(10)
+                ->get();
 
         } elseif ($user->role === 'supervisor') {
             $centerId = session('active_center_id');
@@ -91,12 +99,20 @@ class DashboardController extends Controller
                     ->groupBy('status')
                     ->pluck('total', 'status')
                     ->toArray();
+
+                $recentClosures = RouteClosure::with(['route:id,route_number'])
+                    ->whereIn('route_id', $routeIds)
+                    ->where('operation_date', '>=', now()->subDays(7))
+                    ->orderByDesc('operation_date')
+                    ->limit(10)
+                    ->get();
             }
         }
 
         return view('dashboard', compact(
             'stats', 'scansPerCenter', 'scansByType',
-            'scansTrendByOperator', 'clientsPerRoute', 'requestsByStatus'
+            'scansTrendByOperator', 'clientsPerRoute', 'requestsByStatus',
+            'recentClosures'
         ));
     }
 

@@ -7,6 +7,11 @@ use App\Http\Controllers\Api\RouteController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\ScanController;
 use App\Http\Controllers\Api\RequestController;
+use App\Http\Controllers\Api\RouteClosureController;
+use App\Http\Controllers\Api\ClosureDocumentController;
+use App\Http\Controllers\Api\ManifestItemController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\MachComparisonController;
 use App\Http\Controllers\Shared\RequestResolutionController;
 use App\Http\Controllers\Shared\ClientController as SharedClientController;
 use App\Http\Controllers\Admin\UserController;
@@ -34,6 +39,14 @@ Route::middleware(['auth:sanctum', 'role:operario', 'center.access', 'force.pass
     Route::get('/scans/history', [ScanController::class, 'history']);
     Route::post('/requests', [RequestController::class, 'store']);
     Route::get('/requests/mine', [RequestController::class, 'index']);
+
+    // Route closures (operario can initiate + view own)
+    Route::post('/route-closures', [RouteClosureController::class, 'store']);
+    Route::get('/route-closures', [RouteClosureController::class, 'index']);
+    Route::get('/route-closures/{id}', [RouteClosureController::class, 'show']);
+    Route::post('/route-closures/{id}/documents', [ClosureDocumentController::class, 'store']);
+    Route::get('/route-closures/{id}/comparison', [MachComparisonController::class, 'show']);
+    Route::get('/routes/{routeId}/orders', [OrderController::class, 'index']);
 });
 
 // Shared (Supervisor + TI Admin)
@@ -46,6 +59,22 @@ Route::prefix('shared')
         Route::get('/clients', [SharedClientController::class, 'index']);
         Route::post('/clients', [SharedClientController::class, 'store']);
         Route::put('/clients/{id}', [SharedClientController::class, 'update']);
+
+        // Route closures management
+        Route::get('/route-closures', [RouteClosureController::class, 'index']);
+        Route::get('/route-closures/{id}', [RouteClosureController::class, 'show']);
+        Route::post('/route-closures/{id}/approve', [RouteClosureController::class, 'approve']);
+        Route::post('/route-closures/{id}/reject', [RouteClosureController::class, 'reject']);
+        Route::post('/route-closures/{id}/documents', [ClosureDocumentController::class, 'store']);
+        Route::delete('/route-closures/{id}/documents/{docId}', [ClosureDocumentController::class, 'destroy']);
+        Route::post('/route-closures/{id}/documents/{docId}/reprocess', [ClosureDocumentController::class, 'reprocess']);
+        Route::get('/route-closures/{id}/manifest-items', [ManifestItemController::class, 'index']);
+        Route::post('/route-closures/{id}/manifest-items', [ManifestItemController::class, 'store']);
+        Route::patch('/route-closures/{id}/manifest-items/{itemId}', [ManifestItemController::class, 'update']);
+        Route::delete('/route-closures/{id}/manifest-items/{itemId}', [ManifestItemController::class, 'destroy']);
+        Route::get('/route-closures/{id}/comparison', [MachComparisonController::class, 'show']);
+        Route::post('/route-closures/{id}/generate-orders', [OrderController::class, 'generateFromManifest']);
+        Route::get('/routes/{routeId}/orders', [OrderController::class, 'index']);
     });
 
 // Admin (TI only)
