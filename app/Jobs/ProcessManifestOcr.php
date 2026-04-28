@@ -125,13 +125,23 @@ class ProcessManifestOcr implements ShouldQueue
             Log::info("OCR completed for closure document {$document->id}: {$parsed['route_number']}, {$parsed['total_docs']} docs, " . count($parsed['rows']) . " rows extracted.");
 
         } catch (\Throwable $e) {
+            $isTesseractMissing = str_contains($e->getMessage(), 'tesseract') || str_contains($e->getMessage(), 'not found');
+
             $document->update([
                 'ocr_status'       => 'failed',
-                'ocr_raw_text'     => $e->getMessage(),
+                'ocr_raw_text'     => $isTesseractMissing
+                    ? 'Tesseract OCR no está instalado en el servidor. El procesamiento OCR estará disponible cuando se migre a un servidor con Tesseract.'
+                    : $e->getMessage(),
                 'ocr_processed_at' => now(),
             ]);
 
             Log::error("OCR failed for closure document {$document->id}: {$e->getMessage()}");
+
+            // Don't retry if Tesseract is not installed — it won't fix itself
+            if ($isTesseractMissing) {
+                $this->fail($e);
+                return;
+            }
 
             throw $e;
         }
